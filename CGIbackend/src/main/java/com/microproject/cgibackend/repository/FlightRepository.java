@@ -2,6 +2,8 @@ package com.microproject.cgibackend.repository;
 
 import com.microproject.cgibackend.DTO.FlightDTO;
 import com.microproject.cgibackend.entity.Flight;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -23,6 +25,6 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     GROUP BY f.id, f.flightNumber, f.departureCity, f.arrivalCity,
              f.departureDate, f.departureTime, f.arrivalDate, f.arrivalTime, f.price
 """)
-    List<FlightDTO> findAllFlightsAsDTO();
+    Page<FlightDTO> findAllFlightsAsDTO(Pageable pageable);
 
 }
