@@ -8,23 +8,44 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
 public interface FlightRepository extends JpaRepository<Flight, Long> {
 
     @Query("""
+    SELECT DISTINCT f.departureCity FROM Flight f
+""")
+    List<String> findAllDepartureCities();
+
+    @Query("""
+    SELECT DISTINCT f.arrivalCity FROM Flight f
+""")
+    List<String> findAllArrivalCities();
+
+
+    @Query("""
     SELECT new com.microproject.cgibackend.DTO.FlightDTO(
         f.id, f.flightNumber, f.departureCity, 
         f.arrivalCity, f.departureDate, f.departureTime, 
-        f.arrivalDate, f.arrivalTime, f.price, 
-        COUNT(s.id)) 
+        f.arrivalDate, f.arrivalTime, s.price, f.flightDuration)
     FROM Flight f
-    LEFT JOIN f.seats s
-    WHERE (s.isAvailable = true OR s IS NULL)  
-    GROUP BY f.id, f.flightNumber, f.departureCity, f.arrivalCity,
-             f.departureDate, f.departureTime, f.arrivalDate, f.arrivalTime, f.price
+    JOIN f.seats s
+    
+    WHERE (:departureCity IS NULL OR f.departureCity = :departureCity)
+    AND (:arrivalCity IS NULL OR f.arrivalCity = :arrivalCity)  
+    AND (TRUE = :#{#departureDate == null} OR f.departureDate = :departureDate)
+    AND (TRUE = :#{#arrivalDate == null} OR f.arrivalDate = :arrivalDate)
+    AND (:minPrice IS NULL OR s.price >= :minPrice)
+    AND (:maxPrice IS NULL OR s.price <= :maxPrice)
+    AND (:seatClass IS NULL OR s.classType = :seatClass)
+    
+    GROUP BY f.id, s.price
+    
 """)
-    Page<FlightDTO> findAllFlightsAsDTO(Pageable pageable);
-
+    Page<FlightDTO> findFlightsBySeatClass(String departureCity, String arrivalCity, LocalDate departureDate,
+                                           LocalDate arrivalDate, BigDecimal minPrice, BigDecimal maxPrice,
+                                           String seatClass, String sortPrice, Pageable pageable);
 }

@@ -2,6 +2,13 @@
 export default {
   props: {
     flight: Object
+  },
+  methods:{
+    formatDuration(durationInSeconds) {
+      const hours = Math.floor(durationInSeconds / 3600);
+      const minutes = Math.floor((durationInSeconds % 3600) / 60);
+      return `${hours}h ${minutes}m`;
+    },
   }
 };
 </script>
@@ -18,6 +25,7 @@ export default {
       <p>📍 <strong>Arrival:</strong> {{ flight.arrivalDate }} at {{ flight.arrivalTime }}</p>
       <p class="price">💰 <strong>Price:</strong> ${{ flight.price }}</p>
       <p class="seats">🪑 <strong>Seats Available:</strong> {{ flight.availableSeatsNumber }}</p>
+      <p>🕗 <strong>Duration:</strong> {{ formatDuration(flight.flightDuration) }}</p>
     </div>
 
     <button class="book-btn">Book Now</button>

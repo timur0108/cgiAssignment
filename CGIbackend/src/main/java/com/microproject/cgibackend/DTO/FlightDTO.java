@@ -3,6 +3,7 @@ package com.microproject.cgibackend.DTO;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -17,13 +18,30 @@ public class FlightDTO {
     private LocalDate arrivalDate;
     private LocalTime arrivalTime;
     private BigDecimal price;
-    private Long avalableSeatsNumber;
+    private Long availableSeatsNumber;
+    private Long flightDuration;
+
+//    public FlightDTO(Long id, String flightNumber,
+//                     String departureCity, String arrivalCity,
+//                     LocalDate departureDate, LocalTime departureTime,
+//                     LocalDate arrivalDate, LocalTime arrivalTime,
+//                     BigDecimal price, Long availableSeatsNumber) {
+//        this.id = id;
+//        this.flightNumber = flightNumber;
+//        this.departureCity = departureCity;
+//        this.arrivalCity = arrivalCity;
+//        this.departureDate = departureDate;
+//        this.departureTime = departureTime;
+//        this.arrivalDate = arrivalDate;
+//        this.arrivalTime = arrivalTime;
+//        this.price = price;
+//        this.availableSeatsNumber = availableSeatsNumber;
+//    }
 
     public FlightDTO(Long id, String flightNumber,
                      String departureCity, String arrivalCity,
                      LocalDate departureDate, LocalTime departureTime,
-                     LocalDate arrivalDate, LocalTime arrivalTime,
-                     BigDecimal price, Long avalableSeatsNumber) {
+                     LocalDate arrivalDate, LocalTime arrivalTime, BigDecimal price, Long flightDuration) {
         this.id = id;
         this.flightNumber = flightNumber;
         this.departureCity = departureCity;
@@ -33,6 +51,6 @@ public class FlightDTO {
         this.arrivalDate = arrivalDate;
         this.arrivalTime = arrivalTime;
         this.price = price;
-        this.avalableSeatsNumber = avalableSeatsNumber;
+        this.flightDuration = flightDuration;
     }
 }

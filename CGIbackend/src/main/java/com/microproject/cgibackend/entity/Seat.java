@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -28,5 +30,8 @@ public class Seat {
 
     @OneToOne(mappedBy = "seat")
     private Ticket ticket;
+
+    @Column(name = "price", nullable = false)
+    private BigDecimal price;
 
 }

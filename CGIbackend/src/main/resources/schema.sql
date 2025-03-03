@@ -7,15 +7,17 @@ CREATE TABLE IF NOT EXISTS flight (
     departure_time TIME NOT NULL,
     arrival_date DATE NOT NULL,
     arrival_time TIME NOT NULL,
-    price DECIMAL(10, 2) NOT NULL
+    flight_duration BIGINT GENERATED ALWAYS AS
+        (EXTRACT(EPOCH FROM (arrival_date::timestamp + arrival_time::interval - (departure_date::timestamp + departure_time::interval)))) STORED
 );
 
 CREATE TABLE IF NOT EXISTS seat (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     flight_id BIGINT NOT NULL REFERENCES flight(id) ON DELETE CASCADE,
     seat_number VARCHAR(10) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
     is_available BOOLEAN DEFAULT TRUE,
-    class_type VARCHAR(20) NOT NULL CHECK (class_type in ('First class', 'Business class', 'Tourist class')),
+        class_type VARCHAR(20) NOT NULL CHECK (class_type in ('First class', 'Business class', 'Tourist class')),
     UNIQUE (flight_id, seat_number)
 );
 
@@ -40,7 +42,10 @@ DECLARE
     seat_letter CHAR(1);
     class_type VARCHAR(20);
     is_available BOOLEAN;
+    base_price DECIMAL;
+    final_price DECIMAL;
 BEGIN
+    base_price := (random() * (300 - 100) + 100);
     FOR row_num IN 1..30 LOOP
         IF row_num <= 5 THEN
             class_type := ''First class'';
@@ -50,14 +55,24 @@ BEGIN
             class_type := ''Tourist class'';
         END IF;
 
+
+        IF class_type = ''Business class'' THEN
+            final_price := base_price * 1.25;
+        ELSIF class_type = ''First class'' THEN
+            final_price := base_price * 1.5;
+        ELSE
+            final_price := base_price;
+        END IF;
+
         FOR seat_letter IN SELECT chr(i) FROM generate_series(65, 70) AS i LOOP
             is_available := (random() > 0.2);
-            INSERT INTO seat (flight_id, seat_number, is_available, class_type)
+            INSERT INTO seat (flight_id, seat_number, is_available, class_type, price)
             VALUES (
                 NEW.id,
                 CONCAT(row_num, seat_letter),
                 is_available,
-                class_type
+                class_type,
+                final_price
             );
             END LOOP;
     END LOOP;

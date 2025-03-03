@@ -1,16 +1,12 @@
 package com.microproject.cgibackend.entity;
 
-import com.microproject.cgibackend.repository.FlightRepository;
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @NoArgsConstructor
@@ -42,8 +38,8 @@ public class Flight {
     @Column(name = "arrival_time", nullable = false)
     private LocalTime arrivalTime;
 
-    @Column(nullable = false)
-    private BigDecimal price;
+    @Column(name = "flight_duration", nullable = false)
+    private Long flightDuration;
 
     @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL)
     private List<Seat> seats;

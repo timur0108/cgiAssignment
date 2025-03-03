@@ -5,7 +5,7 @@ import FilterBar from "@/components/FilterBar.vue";
 
 export default {
   name: "HomeView",
-  components: {FilterBar, FlightCard },
+  components: { FilterBar, FlightCard },
   data() {
     return {
       flights: [],
@@ -15,21 +15,53 @@ export default {
       pageSize: 10,
       totalPages: 0,
       isLastPage: false,
+      filters: {
+        departureCity: "",
+        arrivalCity: "",
+        minPrice: null,
+        maxPrice: null,
+        departureDate: "",
+        arrivalDate: "",
+        sortBy: "",
+        sortOrder: "",
+        selectedClass: "",
+      },
     };
   },
-
   mounted() {
     this.fetchFlights();
+    console.log("mounted");
+    console.log(this.flights);
+    console.log("fd")
   },
 
   methods: {
+    goToPage(pageNumber) {
+      if (pageNumber >= 0 && pageNumber < this.totalPages) {
+        this.currentPage = pageNumber;
+        this.fetchFlights();
+      }
+    },
     async fetchFlights() {
       this.loading = true;
+      console.log("gf")
+      console.log(this.filters);
       try {
-        const response = await axios.get("http://localhost:8080/api/flight/all", {
+        console.log("sort by " + this.filters.sortBy);
+        console.log("sort order " + this.filters.sortOrder);
+        const response = await axios.get("http://localhost:8080/api/flight", {
           params: {
             page: this.currentPage,
             size: this.pageSize,
+            ...this.filters.departureCity && { departureCity: this.filters.departureCity },
+            ...this.filters.arrivalCity && { arrivalCity: this.filters.arrivalCity },
+            ...this.filters.maxPrice !== null && { maxPrice: this.filters.maxPrice },
+            ...this.filters.minPrice !== null && { minPrice: this.filters.minPrice },
+            ...this.filters.departureDate && { departureDate: this.filters.departureDate },
+            ...this.filters.arrivalDate && { arrivalDate: this.filters.arrivalDate },
+            ...this.filters.sortOrder && { sortDirection: this.filters.sortOrder },
+            ...this.filters.sortBy && { sortBy: this.filters.sortBy },
+            selectedClass: this.filters.selectedClass,
           },
         });
         this.flights = response.data.content;
@@ -55,13 +87,20 @@ export default {
         this.fetchFlights();
       }
     },
+
+    updateFilters(newFilters) {
+      this.filters = newFilters;
+      this.currentPage = 0;
+      this.fetchFlights();
+    },
   },
 };
+
 </script>
 
 <template>
   <div class="container">
-    <FilterBar :cities="cities" :onFilterChange="fetchFlights" />
+    <FilterBar :onFilterChange="updateFilters" />
 
     <h2 class="title">Available Flights</h2>
 
@@ -73,12 +112,24 @@ export default {
     </div>
 
     <div class="pagination">
-      <button @click="previousPage" :disabled="currentPage === 0" class="btn">Previous</button>
-      <span class="page-indicator">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
-      <button @click="nextPage" :disabled="isLastPage" class="btn">Next</button>
+      <div class="page-buttons-group">
+        <button @click="previousPage" :disabled="currentPage === 0" class="btn-arrow">«</button>
+        <button v-if="totalPages > 1" @click="goToPage(0)" :disabled="currentPage === 0" class="btn-page">1</button>
+        <button v-if="totalPages > 2" @click="goToPage(1)" :disabled="currentPage === 1" class="btn-page">2</button>
+        <button v-if="totalPages > 3" @click="goToPage(2)" :disabled="currentPage === 2" class="btn-page">3</button>
+      </div>
+
+      <span v-if="totalPages > 3" class="ellipsis">...</span>
+
+      <div class="page-buttons-group">
+        <button v-if="totalPages > 3" @click="goToPage(totalPages - 1)" :disabled="isLastPage" class="btn-page">{{ totalPages }}</button>
+        <button @click="nextPage" :disabled="isLastPage" class="btn-arrow">»</button>
+      </div>
     </div>
   </div>
 </template>
+
+
 
 <style scoped>
 
@@ -113,30 +164,74 @@ export default {
   gap: 15px;
 }
 
-.page-indicator {
-  font-size: 16px;
-  font-weight: bold;
-  color: #555;
+.loading {
+  font-size: 18px;
+  color: #ff8c00;
+  margin-bottom: 15px;
 }
 
-.btn {
-  background-color: #007bff;
-  color: white;
-  padding: 10px 20px;
+.error {
   font-size: 16px;
-  border: none;
-  border-radius: 8px;
+  color: red;
+  margin-bottom: 15px;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  gap: 10px;
+}
+
+.page-buttons-group {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-page {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 5px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  min-width: 30px;
+  text-align: center;
+}
+
+.btn-page:hover {
+  background-color: #ddd;
+}
+
+.btn-page:disabled {
+  background-color: #f9f9f9;
+  color: #ccc;
+  cursor: not-allowed;
+  border-color: #f1f1f1;
+}
+
+.btn-arrow {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 5px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   cursor: pointer;
   transition: background 0.3s ease-in-out;
 }
 
-.btn:hover {
-  background-color: #0056b3;
+.btn-arrow:hover {
+  background-color: #ddd;
 }
 
-.btn:disabled {
-  background-color: #ccc;
+.btn-arrow:disabled {
+  background-color: #f9f9f9;
+  color: #ccc;
   cursor: not-allowed;
+  border-color: #f1f1f1;
 }
 
 .loading {
@@ -149,5 +244,63 @@ export default {
   font-size: 16px;
   color: red;
   margin-bottom: 15px;
+}
+
+.ellipsis {
+  font-size: 16px;
+  font-weight: bold;
+  color: #555;
+  padding: 0 5px;
+}
+
+.page-buttons-group {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-page {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 5px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  min-width: 30px;
+  text-align: center;
+}
+
+.btn-page:hover {
+  background-color: #ddd;
+}
+
+.btn-page:disabled {
+  background-color: #f9f9f9;
+  color: #ccc;
+  cursor: not-allowed;
+  border-color: #f1f1f1;
+}
+
+.btn-arrow {
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 5px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.btn-arrow:hover {
+  background-color: #ddd;
+}
+
+.btn-arrow:disabled {
+  background-color: #f9f9f9;
+  color: #ccc;
+  cursor: not-allowed;
+  border-color: #f1f1f1;
 }
 </style>
