@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS seat (
     price DECIMAL(10, 2) NOT NULL,
     is_available BOOLEAN DEFAULT TRUE,
         class_type VARCHAR(20) NOT NULL CHECK (class_type in ('First class', 'Business class', 'Tourist class')),
+    more_leg_space BOOLEAN DEFAULT FALSE,
+    close_to_exit BOOLEAN DEFAULT FALSE,
     UNIQUE (flight_id, seat_number)
 );
 
@@ -44,17 +46,30 @@ DECLARE
     is_available BOOLEAN;
     base_price DECIMAL;
     final_price DECIMAL;
+    more_leg_space BOOLEAN;
+    close_to_exit BOOLEAN;
 BEGIN
     base_price := (random() * (300 - 100) + 100);
     FOR row_num IN 1..30 LOOP
         IF row_num <= 5 THEN
             class_type := ''First class'';
-        ELSIF row_num <= 15 THEN
+        ELSIF row_num <= 10 THEN
             class_type := ''Business class'';
         ELSE
             class_type := ''Tourist class'';
         END IF;
 
+        IF (row_num >= 12 AND row_num <= 15) OR row_num <= 10 THEN
+            more_leg_space := TRUE;
+        ELSE
+            more_leg_space := FALSE;
+        END IF;
+
+        IF (row_num >= 12 AND row_num <= 16) OR row_num <= 2 THEN
+            close_to_exit := TRUE;
+        ELSE
+            close_to_exit := FALSE;
+        end if;
 
         IF class_type = ''Business class'' THEN
             final_price := base_price * 1.25;
@@ -66,13 +81,15 @@ BEGIN
 
         FOR seat_letter IN SELECT chr(i) FROM generate_series(65, 70) AS i LOOP
             is_available := (random() > 0.2);
-            INSERT INTO seat (flight_id, seat_number, is_available, class_type, price)
+            INSERT INTO seat (flight_id, seat_number, is_available, class_type, price, more_leg_space, close_to_exit)
             VALUES (
                 NEW.id,
                 CONCAT(row_num, seat_letter),
                 is_available,
                 class_type,
-                final_price
+                final_price,
+                more_leg_space,
+                close_to_exit
             );
             END LOOP;
     END LOOP;

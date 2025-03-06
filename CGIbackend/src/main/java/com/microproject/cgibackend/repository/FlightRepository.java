@@ -1,5 +1,6 @@
 package com.microproject.cgibackend.repository;
 
+import com.microproject.cgibackend.DTO.FlightBookingDTO;
 import com.microproject.cgibackend.DTO.FlightDTO;
 import com.microproject.cgibackend.entity.Flight;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FlightRepository extends JpaRepository<Flight, Long> {
@@ -25,6 +27,15 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
 """)
     List<String> findAllArrivalCities();
 
+    @Query("""
+    SELECT new com.microproject.cgibackend.DTO.FlightBookingDTO (
+        f.id, f.flightNumber, f.departureCity, f.arrivalCity, f.departureDate, f.departureTime,
+        f.arrivalDate, f.arrivalTime, f.flightDuration
+    )
+    FROM Flight f
+    WHERE f.id = :id
+""")
+    Optional<FlightBookingDTO> findFlightById(Long id);
 
     @Query("""
     SELECT new com.microproject.cgibackend.DTO.FlightDTO(
@@ -41,11 +52,10 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     AND (:minPrice IS NULL OR s.price >= :minPrice)
     AND (:maxPrice IS NULL OR s.price <= :maxPrice)
     AND (:seatClass IS NULL OR s.classType = :seatClass)
-    
+    AND (:maxDuration IS NULL OR f.flightDuration <= :maxDuration)
     GROUP BY f.id, s.price
-    
 """)
     Page<FlightDTO> findFlightsBySeatClass(String departureCity, String arrivalCity, LocalDate departureDate,
                                            LocalDate arrivalDate, BigDecimal minPrice, BigDecimal maxPrice,
-                                           String seatClass, String sortPrice, Pageable pageable);
+                                           String seatClass, Long maxDuration, Pageable pageable);
 }

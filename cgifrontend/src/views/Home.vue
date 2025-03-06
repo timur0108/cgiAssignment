@@ -25,6 +25,7 @@ export default {
         sortBy: "",
         sortOrder: "",
         selectedClass: "",
+        maxDuration: "",
       },
     };
   },
@@ -61,6 +62,7 @@ export default {
             ...this.filters.arrivalDate && { arrivalDate: this.filters.arrivalDate },
             ...this.filters.sortOrder && { sortDirection: this.filters.sortOrder },
             ...this.filters.sortBy && { sortBy: this.filters.sortBy },
+            ...this.filters.maxDuration && { maxDuration: this.filters.maxDuration },
             selectedClass: this.filters.selectedClass,
           },
         });

@@ -42,13 +42,16 @@
       </select>
     </div>
 
+    <div class="filter-section">
+      <input v-model.number="maxDuration" type="number" class="filter-input" placeholder="Max Flight Duration (hours)" min="0" />
+    </div>
+
     <div class="button-group">
       <button @click="applyFilters" class="apply-filters-btn">Apply Filters</button>
       <button @click="clearFilters" class="clear-filters-btn">Clear Filters</button>
     </div>
   </div>
 </template>
-
 
 <script>
 import axios from "axios";
@@ -69,6 +72,7 @@ export default {
       arrivalDate: "",
       sortOption: "",
       selectedClass: "Tourist class",
+      maxDuration: null,
     };
   },
   mounted() {
@@ -99,6 +103,7 @@ export default {
         sortBy: this.sortBy,
         sortOrder: this.sortOrder,
         selectedClass: this.selectedClass,
+        maxDuration: this.maxDuration ? this.maxDuration * 60 * 60 : null,
       });
     },
     clearFilters() {
@@ -110,6 +115,7 @@ export default {
       this.arrivalDate = "";
       this.sortOption = "";
       this.selectedClass = "Tourist class";
+      this.maxFlightDuration = null;
       this.applyFilters();
     },
     async fetchDepartureCities() {
@@ -131,6 +137,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .filter-bar {

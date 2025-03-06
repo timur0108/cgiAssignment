@@ -1,14 +1,12 @@
 package com.microproject.cgibackend.controller;
 
+import com.microproject.cgibackend.DTO.FlightBookingDTO;
 import com.microproject.cgibackend.DTO.FlightDTO;
 import com.microproject.cgibackend.service.FlightService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -31,14 +29,22 @@ public class FlightController {
             @RequestParam(required = false) LocalDate arrivalDate,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Long maxDuration,
             @RequestParam(required = false, defaultValue = "Tourist class") String selectedClass,
             @RequestParam(defaultValue = "null") String sortBy,
             @RequestParam(defaultValue = "null") String sortDirection
     ) {
+        System.out.println("max duration " + maxDuration);
         return ResponseEntity.ok(
                 flightService.getFlightsByParams(departureCity, arrivalCity,
-                        departureDate, arrivalDate, minPrice, maxPrice, selectedClass,
+                        departureDate, arrivalDate, minPrice, maxPrice, selectedClass, maxDuration,
                         sortBy, sortDirection, page, size));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<FlightBookingDTO> getFlightForBooking(@PathVariable Long id) {
+
+        return ResponseEntity.ok(flightService.getFlightBookingDTO(id));
     }
 
     @GetMapping("/departureCity")

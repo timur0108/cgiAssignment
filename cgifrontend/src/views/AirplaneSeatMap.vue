@@ -33,7 +33,7 @@ export default {
     getRowStyle(row) {
 
       if (row <= 3) {
-        return { marginBottom: '12px' };
+        return { marginBottom: '20px' };
       } else if (row === 6 || row === 12 || row === 18 || row === 24) {
         return { marginBottom: '10px' };
       } else {
@@ -47,12 +47,12 @@ export default {
 <style scoped>
 
 .seat-map {
+  padding-top: 450px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  padding: 20px;
   text-align: center;
   box-sizing: border-box;
   overflow: hidden;

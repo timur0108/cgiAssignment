@@ -34,4 +34,10 @@ public class Seat {
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
+    @Column(name = "more_leg_space", nullable = false)
+    private Boolean moreLegSpace;
+
+    @Column(name = "close_to_exit", nullable = false)
+    private Boolean closeToExit;
+
 }
