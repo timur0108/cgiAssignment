@@ -2,67 +2,138 @@
   <div class="booking-container">
     <h2 class="booking-title">Booking Details</h2>
 
-    <div v-if="bookingData" class="flight-details">
-      <div class="route-info">
-        <div class="route-item">
-          <p><strong>Departure:</strong></p>
-          <p>{{ bookingData.departureCity }}</p>
-          <p>{{ bookingData.departureDate }} | {{ bookingData.departureTime }}</p>
-        </div>
-        <div class="route-item">
-          <p><strong>Arrival:</strong></p>
-          <p>{{ bookingData.arrivalCity }}</p>
-          <p>{{ bookingData.arrivalDate }} | {{ bookingData.arrivalTime }}</p>
-        </div>
-      </div>
-
-      <div class="duration-info">
-        <p><strong>Duration:</strong> {{ formatDuration(bookingData.flightDuration) }}</p>
-      </div>
-
-      <div class="price-info">
-        <div class="price-item">
-          <p><strong>Tourist Class:</strong> {{ bookingData.touristClassPrice }}€</p>
-          <p>Available Seats: {{ bookingData.touristClassAvailableSeats }}</p>
-        </div>
-        <div class="price-item">
-          <p><strong>Business Class:</strong> {{ bookingData.businessClassPrice }}€</p>
-          <p>Available Seats: {{ bookingData.businessClassAvailableSeats }}</p>
-        </div>
-        <div class="price-item">
-          <p><strong>First Class:</strong> {{ bookingData.firstClassPrice }}€</p>
-          <p>Available Seats: {{ bookingData.firstClassAvailableSeats }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div v-else>
-      <p>Loading booking details...</p>
-    </div>
-
     <div v-if="bookingData" class="booking-form">
-      <h3 class="form-title">Complete Your Booking</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="num-tickets">Number of Tickets:</label>
-          <input type="number" id="num-tickets" v-model="numTickets" min="1" :max="maxSeats" />
+      <div class="flight-details">
+        <h3>Flight Information</h3>
+        <div class="route-info">
+          <div class="route-item">
+            <strong>Departure:</strong>
+            <p>{{ bookingData.departureCity }}</p>
+            <p class="date-time">{{ bookingData.departureDate }} at {{ bookingData.departureTime }}</p>
+          </div>
+          <div class="route-item">
+            <strong>Duration:</strong>
+            <p>{{ formatDuration(bookingData.flightDuration) }}</p>
+          </div>
+          <div class="route-item">
+            <strong>Destination:</strong>
+            <p>{{ bookingData.arrivalCity }}</p>
+            <p class="date-time">{{ bookingData.arrivalDate }} at {{ bookingData.arrivalTime }}</p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="class-type">Select Class:</label>
-          <select id="class-type" v-model="selectedClass">
-            <option value="tourist">Tourist Class</option>
-            <option value="business">Business Class</option>
-            <option value="first">First Class</option>
+        <div class="price-info">
+          <div class="price-item">
+            <p><strong>Tourist Class (€{{ bookingData.touristClassPrice }})</strong></p>
+            <p>Seats available: {{ bookingData.touristClassAvailableSeats }}</p>
+          </div>
+          <div class="price-item">
+            <p><strong>Business Class (€{{ bookingData.businessClassPrice }})</strong></p>
+            <p>Seats available: {{ bookingData.businessClassAvailableSeats }}</p>
+          </div>
+          <div class="price-item">
+            <p><strong>First Class (€{{ bookingData.firstClassPrice }})</strong></p>
+            <p>Seats available: {{ bookingData.firstClassAvailableSeats }}</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="form-title">Complete Your Booking</h3>
+
+      <div class="form-group">
+        <label for="num-tickets">Number of Tickets:</label>
+        <input type="number" id="num-tickets" v-model.number="numTickets" min="1" :max="maxSeats" @change="updateTicketPreferences" />
+      </div>
+
+      <div v-if="numTickets > 1" class="form-group">
+        <label for="seats-together">
+          <input type="checkbox" id="seats-together" v-model="seatsTogether" />
+          Seats Together
+        </label>
+      </div>
+
+      <div v-if="seatsTogether" class="preferences-container">
+        <div class="preferences-column">
+          <label>Seat Preferences (Applied to All Seats):</label>
+          <div class="checkbox-group">
+            <label>
+              <input type="checkbox" v-model="sharedPreferences.window" />
+              Near the Window
+            </label>
+            <label>
+              <input type="checkbox" v-model="sharedPreferences.exit" />
+              Near the Exit
+            </label>
+            <label>
+              <input type="checkbox" v-model="sharedPreferences.extraLegroom" />
+              Extra Leg Space
+            </label>
+          </div>
+        </div>
+
+        <div class="preferences-column">
+          <label><strong>Select Class Type for All Seats:</strong></label>
+          <select v-model="sharedPreferences.classType">
+            <option value="Tourist class">Tourist Class (€{{ bookingData.touristClassPrice }})</option>
+            <option value="Business class">Business Class (€{{ bookingData.businessClassPrice }})</option>
+            <option value="First class">First Class (€{{ bookingData.firstClassPrice }})</option>
           </select>
         </div>
       </div>
 
-      <div class="form-group total-price">
-        <p><strong>Total Price:</strong> €{{ totalPrice }}</p>
+      <div v-for="(preferences, index) in seatPreferences" :key="index" class="ticket-section">
+
+        <div class="ticket-window">
+          <h4>Ticket {{ index + 1 }}</h4>
+          <div class="form-group-row">
+            <div class="form-group left-side">
+              <label :for="'name-' + index">Name:</label>
+              <input type="text" :id="'name-' + index" v-model="passengers[index].name" placeholder="Enter passenger's name" />
+
+              <label :for="'surname-' + index">Surname:</label>
+              <input type="text" :id="'surname-' + index" v-model="passengers[index].surname" placeholder="Enter passenger's surname" />
+
+              <label :for="'email-' + index">Email:</label>
+              <input type="email" :id="'email-' + index" v-model="passengers[index].email" placeholder="Enter passenger's email" />
+
+              <label :for="'phone-' + index">Phone:</label>
+              <input type="tel" :id="'phone-' + index" v-model="passengers[index].phone" placeholder="Enter passenger's phone" />
+            </div>
+
+
+            <div v-if="!seatsTogether" class="preferences-column right-side">
+              <label>Seat Preferences:</label>
+              <div class="checkbox-group">
+                <label>
+                  <input type="checkbox" v-model="seatPreferences[index].window" />
+                  Near the Window
+                </label>
+                <label>
+                  <input type="checkbox" v-model="seatPreferences[index].exit" />
+                  Near the Exit
+                </label>
+                <label>
+                  <input type="checkbox" v-model="seatPreferences[index].extraLegroom" />
+                  Extra Leg Space
+                </label>
+              </div>
+
+              <label for="'classType-' + index">Seat Class:</label>
+              <select v-model="seatPreferences[index].classType">
+                <option value="Tourist class">Tourist Class (€{{ bookingData.touristClassPrice }})</option>
+                <option value="Business class">Business Class (€{{ bookingData.businessClassPrice }})</option>
+                <option value="First class">First Class (€{{ bookingData.firstClassPrice }})</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <button @click="submitBooking">Book Now</button>
+      <div v-if="totalPrice" class="total-price">
+        <h3>Total Price: €{{ totalPrice }}</h3>
+      </div>
+
+      <button @click="submitBooking">Continue booking</button>
     </div>
   </div>
 </template>
@@ -76,32 +147,45 @@ export default {
       flightId: null,
       bookingData: null,
       numTickets: 1,
-      selectedClass: 'tourist',
+      seatsTogether: false,
+      sharedPreferences: {
+        classType: 'Tourist class',
+        window: false,
+        exit: false,
+        extraLegroom: false
+      },
+      seatPreferences: [ {
+        classType: 'Tourist class',
+        window: false,
+        exit: false,
+        extraLegroom: false,
+      }],
+      passengers: [
+        {
+          name: '',
+          surname: '',
+          email: '',
+          phone: '',
+        }
+      ]
     };
   },
   computed: {
     totalPrice() {
-      let pricePerTicket = 0;
-
-      if (this.selectedClass === 'tourist') {
-        pricePerTicket = this.bookingData.touristClassPrice;
-      } else if (this.selectedClass === 'business') {
-        pricePerTicket = this.bookingData.businessClassPrice;
-      } else if (this.selectedClass === 'first') {
-        pricePerTicket = this.bookingData.firstClassPrice;
-      }
-
-      return (pricePerTicket * this.numTickets).toFixed(2);
+      return this.seatPreferences.reduce((total, preferences) => {
+        let pricePerTicket = 0;
+        if (preferences.classType === 'Tourist class') {
+          pricePerTicket = this.bookingData.touristClassPrice;
+        } else if (preferences.classType === 'Business class') {
+          pricePerTicket = this.bookingData.businessClassPrice;
+        } else if (preferences.classType === 'First class') {
+          pricePerTicket = this.bookingData.firstClassPrice;
+        }
+        return total + pricePerTicket;
+      }, 0).toFixed(2);
     },
     maxSeats() {
-      if (this.selectedClass === 'tourist') {
-        return this.bookingData.touristClassAvailableSeats;
-      } else if (this.selectedClass === 'business') {
-        return this.bookingData.businessClassAvailableSeats;
-      } else if (this.selectedClass === 'first') {
-        return this.bookingData.firstClassAvailableSeats;
-      }
-      return 0;
+      return this.bookingData && this.bookingData.touristClassAvailableSeats;
     },
   },
   created() {
@@ -122,191 +206,246 @@ export default {
         console.error("Error fetching booking details:", error);
       }
     },
+    updateTicketPreferences() {
+      if (this.numTickets === 1) {
+        this.seatsTogether = false;
+      }
+      if (this.seatsTogether) {
+        this.seatPreferences = Array.from({ length: this.numTickets }, () => ({
+          classType: this.sharedPreferences.classType,
+          window: this.sharedPreferences.window,
+          exit: this.sharedPreferences.exit,
+          extraLegroom: this.sharedPreferences.extraLegroom,
+        }));
+
+        this.passengers = Array.from({ length: this.numTickets }, () => ({
+          name: '',
+          surname: '',
+          email: '',
+          phone: '',
+        }));
+      } else {
+        this.seatPreferences = Array.from({ length: this.numTickets }, () => ({
+          classType: 'Tourist class',
+          window: false,
+          exit: false,
+          extraLegroom: false,
+        }));
+
+        this.passengers = Array.from({ length: this.numTickets }, () => ({
+          name: '',
+          surname: '',
+          email: '',
+          phone: '',
+        }));
+      }
+    },
     submitBooking() {
-      alert('Booking successful!');
+      const seatPreferencesDTOList = this.seatsTogether
+          ? [{
+            flightId: this.flightId,
+            seatClass: this.sharedPreferences.classType,
+            closeToWindow: this.sharedPreferences.window,
+            closeToExit: this.sharedPreferences.exit,
+            extraLegSpace: this.sharedPreferences.extraLegroom,
+            numberOfSeats: this.numTickets,
+          }]
+          : this.seatPreferences.map(preference => ({
+            flightId: this.flightId,
+            seatClass: preference.classType,
+            closeToWindow: preference.window,
+            closeToExit: preference.exit,
+            extraLegSpace: preference.extraLegroom,
+            numberOfSeats: 1,
+          }));
+      axios.post('http://localhost:8080/api/seat', seatPreferencesDTOList)
+          .then(response => {
+            console.log("Recommended seats:", response.data);
+            this.$router.push({
+              name: 'recommended-seats',
+              query: {
+                seats: JSON.stringify(response.data),
+                flightId: this.flightId,
+                passengers: JSON.stringify(this.passengers)  // Pass passengers list
+              }
+            });
+          })
+          .catch(error => {
+            console.error("Error fetching recommended seats:", error);
+          });
     }
   }
 };
 </script>
 
+
 <style scoped>
 .booking-container {
-  max-width: 900px;
-  margin: 30px auto;
-  padding: 40px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-  font-family: 'Roboto', sans-serif;
-}
-
-.booking-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.flight-details {
-  margin-bottom: 40px;
-}
-
-.route-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.route-item {
-  background-color: #ecf0f1;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
-
-.route-item p {
-  margin: 5px 0;
-}
-
-.route-item strong {
-  color: #007bff;
-  font-size: 18px;
-}
-
-.duration-info {
-  background-color: #ecf0f1;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  margin-top: 20px;
-  font-size: 16px;
-  color: #2c3e50;
-}
-
-.price-info {
-  margin-top: 30px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.price-item {
-  background-color: #ecf0f1;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 16px;
-}
-
-.price-item p {
-  margin: 5px 0;
-}
-
-.booking-form {
-  background-color: #ffffff;
+  max-width: 800px;
+  margin: auto;
   padding: 30px;
+  background: #fff;
   border-radius: 12px;
-  box-shadow: none;
-  margin-top: 40px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
 }
-
-.form-title {
-  font-size: 28px;
-  font-weight: 600;
+.booking-title {
+  text-align: center;
   color: #2c3e50;
-  margin-bottom: 30px;
+  font-size: 24px;
+  margin-bottom: 20px;
 }
-
-.form-row {
+.flight-details, .booking-form {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+.route-info {
   display: flex;
-  gap: 30px;
-  margin-bottom: 25px;
-}
+  justify-content: space-between;
+  margin-bottom: 10px;
 
-.form-group {
+}
+.route-item {
   flex: 1;
-}
-
-.booking-form label {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.booking-form input,
-.booking-form select {
-  width: 100%;
+  text-align: center;
+  background: #e9ecef;
   padding: 12px;
-  font-size: 16px;
+  margin: 5px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.price-info {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+.price-item {
+  flex: 1;
+  text-align: center;
+  background: #e9ecef;
+  padding: 12px;
+  margin: 5px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.preferences-container select {
+  font-size: 14px;
+  padding: 6px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+.preferences-container label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1 1 100%;
+}
+.preferences-container {
+  width: 80%;
+  max-width: 800px;
+  padding: 15px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 15px;
+}
+.form-group-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 50px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px;
+}
+.form-group label {
+  font-weight: bold;
+  font-size: 14px;
+}
+.ticket-section {
+  background: #fff;
+  padding: 5px;
+  margin-bottom: 15px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background-color: #f7f7f7;
-  transition: border-color 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.ticket-window {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  min-width: inherit;
+}
+.preferences-column {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+}
+.preferences-column > label {
+  font-weight: bold;
+}
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 6px;
+  margin-top: 5px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.left-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 50%;
+}
+.right-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50%;
+  gap: 20px;
 }
 
-.booking-form input:focus,
-.booking-form select:focus {
-  border-color: #007bff;
-  outline: none;
+.right-side > label {
+  font-weight: bold;
 }
-
-.total-price {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
 button {
   width: 100%;
-  padding: 14px;
-  background-color: #007bff;
+  padding: 12px;
+  margin-top: 20px;
+  background-color: #3498db;
   color: white;
-  font-size: 18px;
   border: none;
   border-radius: 8px;
+  font-size: 16px;
   cursor: pointer;
-  margin-top: 30px;
-  transition: background-color 0.3s ease-in-out;
 }
-
 button:hover {
-  background-color: #0056b3;
-}
-
-@media (max-width: 768px) {
-  .booking-container {
-    padding: 20px;
-  }
-
-  .booking-title {
-    font-size: 28px;
-  }
-
-  .route-info {
-    grid-template-columns: 1fr;
-  }
-
-  .price-info {
-    grid-template-columns: 1fr;
-  }
-
-  .price-item {
-    padding: 15px;
-  }
-
-  .booking-form {
-    padding: 25px;
-  }
-
-  button {
-    font-size: 16px;
-    padding: 12px;
-  }
+  background-color: #2980b9;
 }
 </style>
-
 
 
 

@@ -80,7 +80,7 @@ BEGIN
         END IF;
 
         FOR seat_letter IN SELECT chr(i) FROM generate_series(65, 70) AS i LOOP
-            is_available := (random() > 0.2);
+            is_available := (random() > 0.6);
             INSERT INTO seat (flight_id, seat_number, is_available, class_type, price, more_leg_space, close_to_exit)
             VALUES (
                 NEW.id,
