@@ -82,7 +82,7 @@ export default {
   methods: {
     async fetchSeats() {
       try {
-        const response = await axios.get("http://localhost:8080/api/seat/1");
+        const response = await axios.get("http://backend:8080/api/seat/1");
         this.seats = response.data;
       } catch (error) {
         console.error("Error fetching seats:", error);

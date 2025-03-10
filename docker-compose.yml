@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: 'postgres:alpine'
+    container_name: postgres
+    environment:
+      - 'POSTGRES_DB=mydatabase'
+      - 'POSTGRES_USER=myuser'
+      - 'POSTGRES_PASSWORD=secret'
+    ports:
+      - '5432:5432'
+    networks:
+      - mynetwork
+
+  backend:
+    build: ./cgibackend
+    container_name: backend
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/mydatabase
+      - DATABASE_USER=myuser
+      - DATABASE_PASSWORD=secret
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - mynetwork
+
+  frontend:
+    build: ./cgifrontend  
+    container_name: frontend
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
