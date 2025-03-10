@@ -6,26 +6,36 @@
         <p>Loading your recommended seats...</p>
       </div>
       <div v-else>
-        <div v-if="recommendedSeats.length > 0">
+        <div>
           <ul>
-            <li v-for="(seat, index) in recommendedSeats" :key="index" class="seat-item">
-              <div class="seat-info">
-                <p><strong>Ticket {{ index + 1 }}:</strong></p>
-                <p><strong>Class:</strong> {{ seat.classType }}</p>
-                <p><strong>Seat number:</strong> {{ seat.seatNumber }}</p>
+            <li v-for="(passenger, index) in passengers" :key="index" class="seat-item">
+              <div class="seat-info" v-if="findSeatByPassenger(index + 1) != null">
+                <p><strong>Ticket {{ findSeatByPassenger(index + 1).ticketNumber }}:</strong></p>
+                <p><strong>Class:</strong> {{ findSeatByPassenger(index + 1).classType }}</p>
+                <p><strong>Seat number:</strong> {{ findSeatByPassenger(index + 1).seatNumber }}</p>
+                <p><strong>Price:</strong> {{ findSeatByPassenger(index + 1).price }}€</p>
               </div>
-              <div class="passenger-info">
-                <p><strong>Name:</strong> {{ passengers[index].name }}</p>
-                <p><strong>Surname:</strong> {{ passengers[index].surname }}</p>
-                <p><strong>Email:</strong> {{ passengers[index].email }}</p>
-                <p><strong>Phone:</strong> {{ passengers[index].phone }}</p>
+              <div class="passenger-info" v-if="findSeatByPassenger(index + 1) != null">
+                <p><strong>Name:</strong> {{ passenger.name }}</p>
+                <p><strong>Surname:</strong> {{ passenger.surname }}</p>
+                <p><strong>Email:</strong></p>
+                <p>{{ passenger.email }}</p>
+                <p><strong>Phone:</strong> {{ passenger.phone }}</p>
+              </div>
+              <div class="passenger-info" v-if="findSeatByPassenger(index + 1) === null">
+                <p>Couldn't find seat for ticket {{index+1}} based on your preferences </p>
+                <p>Choose seat yourself by clicking on the seat on the map</p>
+                <button @click="chooseSeat(index)">Choose seat</button>
+                <p><strong>Name:</strong> {{ passenger.name }}</p>
+                <p><strong>Surname:</strong> {{ passenger.surname }}</p>
+                <p><strong>Email:</strong> {{ passenger.email }}</p>
+                <p><strong>Phone:</strong> {{ passenger.phone }}</p>
               </div>
             </li>
           </ul>
         </div>
-        <div v-else>
-          <p>No recommended seats available. Please try again.</p>
-        </div>
+        <p>Total Price: ${{ totalPrice }}</p>
+        <button @click="submitBooking">Buy tickets</button>
       </div>
     </div>
 
@@ -51,6 +61,7 @@
                   :key="seat.id"
                   @mouseover="showTooltip(seat, $event)"
                   @mouseleave="hideTooltip"
+                  @click="selectThisSeat(seat)"
                   :class="['seat', getSeatClass(seat), isRecommendedSeat(seat) ? 'recommended' : '']"
               >
                 <span v-if="seat.isAvailable">{{ seat.seatNumber }}</span>
@@ -65,6 +76,7 @@
                   :key="seat.id"
                   @mouseover="showTooltip(seat, $event)"
                   @mouseleave="hideTooltip"
+                  @click="selectThisSeat(seat)"
                   :class="['seat', getSeatClass(seat), isRecommendedSeat(seat) ? 'recommended' : '']"
               >
                 <span v-if="seat.isAvailable">{{ seat.seatNumber }}</span>
@@ -82,7 +94,7 @@
     >
       <p><strong>Seat:</strong> {{ hoveredSeat.seatNumber }}</p>
       <p><strong>Class:</strong> {{ hoveredSeat.classType }}</p>
-      <p v-if="hoveredSeat.isAvailable"><strong>Status:</strong> Available</p>
+      <p><strong>Price:</strong> {{ hoveredSeat.price }}€</p>
       <p v-if="hoveredSeat.moreLegSpace">More space for legs</p>
       <p v-if="hoveredSeat.closeToExit">Near the exit</p>
     </div>
@@ -92,6 +104,7 @@
 
 <script>
 import axios from "axios";
+
 
 export default {
   name: "SeatMapWithRecommendations",
@@ -105,9 +118,17 @@ export default {
       flightId: "",
       recommendedSeats: [],
       loading: true,
+      chosenIndex: null,
     };
   },
   computed: {
+    totalPrice() {
+      const total = this.recommendedSeats.reduce((sum, seat) => {
+        return sum + (seat.price || 0);
+      }, 0);
+
+      return total.toFixed(2);
+    },
     groupedSeats() {
       const grouped = {};
 
@@ -129,6 +150,48 @@ export default {
     },
   },
   methods: {
+    chooseSeat(index) {
+      this.chosenIndex = index;
+    },
+    selectThisSeat(seat) {
+      if (this.chosenIndex != null) {
+        seat.ticketNumber = this.chosenIndex + 1;
+        this.recommendedSeats.push(seat);
+        this.chosenIndex = null;
+      }
+    },
+    findSeatByPassenger(index) {
+      for (let i = 0; i < this.recommendedSeats.length; i++) {
+        if (this.recommendedSeats[i].ticketNumber === index) return this.recommendedSeats[i];
+      }
+      return null;
+    },
+    submitBooking(){
+      const ticketsToBuy = this.recommendedSeats.map((seat) => {
+        return {
+          seatId: seat.id,
+          name: this.passengers[seat.ticketNumber - 1].name,
+          surname: this.passengers[seat.ticketNumber - 1].surname,
+          email: this.passengers[seat.ticketNumber - 1].email,
+          phone: this.passengers[seat.ticketNumber - 1].phone,
+        };
+      });
+
+      axios
+          .post('http://localhost:8080/api/ticket', ticketsToBuy)
+          .then((response) => {
+            console.log('Tickets bought successfully:', response.data);
+            this.$router.push({
+              name: 'TicketDisplayPage',
+              query: {
+                tickets: JSON.stringify(response.data)
+              }
+            });
+          })
+          .catch((error) => {
+            console.error('Error buying tickets:', error);
+          });
+    },
     async fetchSeats() {
       try {
         console.log("flightId " + this.flightId);
@@ -183,7 +246,7 @@ export default {
     this.flightId = flightId;
 
     if (seats) {
-      this.recommendedSeats = [].concat(...JSON.parse(seats));
+      this.recommendedSeats = JSON.parse(seats);
     }
 
     if (passengers) {
@@ -337,15 +400,12 @@ h2 {
   background-color: #595656;
   border-color: #000;
 }
-.seat-info, .passenger-info {
-  width: 48%;
-}
-.passenger-info {
-  text-align: right;
-}
+
+
 .seat-item {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
+  flex-direction: row;
   margin-bottom: 10px;
   padding: 10px;
   border: 1px solid #ddd;

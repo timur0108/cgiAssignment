@@ -50,6 +50,11 @@ public class SeatService {
                         List<SeatDTO> seatsStartingFromLeftWindow = seatsInRow.subList(0, numberOfSeats);
                         if (areAdjacentSeats(seatsStartingFromLeftWindow)) {
                             if (seatIsNotAlreadyChosen(chosenSeats, seatsStartingFromLeftWindow)) {
+                                int tNumber = preferencesDTO.getTicketNumber();
+                                for (SeatDTO seatDTO : seatsStartingFromLeftWindow) {
+                                    seatDTO.setTicketNumber(tNumber);
+                                    tNumber++;
+                                }
                                 chosenSeats.addAll(seatsStartingFromLeftWindow);
                                 break;
                             }
@@ -59,6 +64,11 @@ public class SeatService {
                         List<SeatDTO> seatsStartingFromRightWindow = seatsInRow.subList((seatsInRow.size() - numberOfSeats), seatsInRow.size());
                         if (areAdjacentSeats(seatsStartingFromRightWindow)) {
                             if (seatIsNotAlreadyChosen(chosenSeats, seatsStartingFromRightWindow)) {
+                                int tNumber = preferencesDTO.getTicketNumber();
+                                for (SeatDTO seatDTO : seatsStartingFromRightWindow) {
+                                    seatDTO.setTicketNumber(tNumber);
+                                    tNumber++;
+                                }
                                 chosenSeats.addAll(seatsStartingFromRightWindow);
                                 break;
                             }
@@ -70,6 +80,11 @@ public class SeatService {
                         List<SeatDTO> seatGroup = seatsInRow.subList(i, i + numberOfSeats);
                         if (areAdjacentSeats(seatGroup)) {
                             if (seatIsNotAlreadyChosen(chosenSeats, seatGroup)) {
+                                int tNumber = preferencesDTO.getTicketNumber();
+                                for (SeatDTO seatDTO : seatGroup) {
+                                    seatDTO.setTicketNumber(tNumber);
+                                    tNumber++;
+                                }
                                 chosenSeats.addAll(seatGroup);
                                 found = true;
                                 break;

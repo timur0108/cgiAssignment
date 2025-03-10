@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class SeatPreferencesDTO {
-
+    private int ticketNumber;
     private Long flightId;
     private String seatClass;
     private Boolean closeToWindow;

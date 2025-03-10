@@ -24,15 +24,15 @@
 
         <div class="price-info">
           <div class="price-item">
-            <p><strong>Tourist Class (€{{ bookingData.touristClassPrice }})</strong></p>
+            <p><strong>Tourist Class ({{ bookingData.touristClassPrice }}€)</strong></p>
             <p>Seats available: {{ bookingData.touristClassAvailableSeats }}</p>
           </div>
           <div class="price-item">
-            <p><strong>Business Class (€{{ bookingData.businessClassPrice }})</strong></p>
+            <p><strong>Business Class ({{ bookingData.businessClassPrice }}€)</strong></p>
             <p>Seats available: {{ bookingData.businessClassAvailableSeats }}</p>
           </div>
           <div class="price-item">
-            <p><strong>First Class (€{{ bookingData.firstClassPrice }})</strong></p>
+            <p><strong>First Class ({{ bookingData.firstClassPrice }}€)</strong></p>
             <p>Seats available: {{ bookingData.firstClassAvailableSeats }}</p>
           </div>
         </div>
@@ -130,7 +130,7 @@
       </div>
 
       <div v-if="totalPrice" class="total-price">
-        <h3>Total Price: €{{ totalPrice }}</h3>
+        <h3>Total Price: {{ totalPrice }}€</h3>
       </div>
 
       <button @click="submitBooking">Continue booking</button>
@@ -249,14 +249,16 @@ export default {
             closeToExit: this.sharedPreferences.exit,
             extraLegSpace: this.sharedPreferences.extraLegroom,
             numberOfSeats: this.numTickets,
+            ticketNumber: 1,
           }]
-          : this.seatPreferences.map(preference => ({
+          : this.seatPreferences.map((preference, index) => ({
             flightId: this.flightId,
             seatClass: preference.classType,
             closeToWindow: preference.window,
             closeToExit: preference.exit,
             extraLegSpace: preference.extraLegroom,
             numberOfSeats: 1,
+            ticketNumber: index + 1,
           }));
       axios.post('http://localhost:8080/api/seat', seatPreferencesDTOList)
           .then(response => {

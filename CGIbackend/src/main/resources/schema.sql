@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS passenger (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     first_name varchar(100) NOT NULL,
     last_name varchar(100) NOT NULL,
-    email varchar(100) UNIQUE NOT NULL,
+    email varchar(100) NOT NULL,
     phone varchar(20) NOT NULL
 );
 

@@ -1,12 +1,14 @@
 package com.microproject.cgibackend.DTO;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 
 @Data
+@EqualsAndHashCode(exclude = "ticketNumber")
 public class SeatDTO {
-
+    private int ticketNumber;
     private Long id;
     private Long flightId;
     private String seatNumber;
